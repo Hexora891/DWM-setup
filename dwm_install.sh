@@ -58,7 +58,6 @@ sudo pacman -Syu --needed --noconfirm \
     network-manager-applet \
     dunst \
     feh \
-    nitrogen \
     alsa-utils \
     pipewire \
     pipewire-alsa \
