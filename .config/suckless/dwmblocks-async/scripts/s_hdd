@@ -1,0 +1,9 @@
+#!/bin/sh
+
+case "$BLOCK_BUTTON" in
+    1)
+        baobab /home/ayush &
+        ;;
+esac
+
+df -h / | awk 'NR==2 { printf "󰋊 %s", $4 }'

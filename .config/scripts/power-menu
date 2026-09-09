@@ -1,0 +1,19 @@
+#!/bin/bash
+
+choice=$(printf " Lock\n⏻ Shutdown\n Reboot\n Suspend" | \
+rofi -dmenu -p "Power")
+
+case "$choice" in
+  " Lock")
+      slock
+      ;;
+  "⏻ Shutdown")
+      systemctl poweroff
+      ;;
+  " Reboot")
+      systemctl reboot
+      ;;
+  " Suspend")
+      systemctl suspend
+      ;;
+esac

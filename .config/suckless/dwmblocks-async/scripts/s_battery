@@ -1,0 +1,12 @@
+#!/bin/sh
+
+BAT="BAT0"
+[ -d /sys/class/power_supply/$BAT ] || exit
+
+cap=$(cat /sys/class/power_supply/$BAT/capacity)
+stat=$(cat /sys/class/power_supply/$BAT/status)
+
+icon="󰁹"
+[ "$stat" = "Charging" ] && icon="󰂄"
+
+printf "%s %s%%" "$icon" "$cap"

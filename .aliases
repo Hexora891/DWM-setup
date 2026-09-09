@@ -1,0 +1,50 @@
+# BloodHound CE
+alias bloodhound-up='docker compose -f ~/.BloodHound/examples/docker-compose/docker-compose.yml up -d'
+alias bloodhound-down='docker compose -f ~/.BloodHound/examples/docker-compose/docker-compose.yml down -v'
+alias bloodhound-restart='docker compose -f ~/.BloodHound/examples/docker-compose/docker-compose.yml restart'
+alias bloodhound-ps='docker compose -f ~/.BloodHound/examples/docker-compose/docker-compose.yml ps'
+alias bloodhound-passwd='docker logs docker-compose-bloodhound-1 2>&1 | grep "Initial Password" | awk "{print \$6}"'
+
+# GCPBucketBrute
+alias gcpbucketbrute='docker run --rm -it -v $(pwd):/data -v /tmp:/tmp gcpbucketbrute-image'
+
+# Copy tun0 ip
+alias tun0-ip='ip addr show tun0 | awk "/inet / {print \$2}" | cut -d/ -f1 | tr -d "\n" | xclip -selection clipboard && echo "tun0 IP copied"'
+
+# mssql_shell_with_upload_func
+alias mssqlup='rlwrap -a -n python3 /home/ayush/Tools/offensive-AD/scripts/mssql_shell_with_upload_func.py'
+
+# Define any word
+alias define="$HOME/.config/scripts/define.sh"
+
+# Copy emoji
+alias emoji="$HOME/.config/scripts/emoji.sh"
+
+#
+alias pid2ps="$HOME/.config/scripts/pid2ps.sh"
+
+# download youtube videos
+alias ytdl="$HOME/.config/scripts/ytdl.sh"
+
+# fixtime
+alias fixtime='python3 /home/ayush/Tools/offensive-AD/scripts/fixtime.py'
+
+# For venv
+alias venvon='source venv/bin/activate'
+alias venvoff='deactivate'
+
+# Theme changer
+alias st-theme="$HOME/.config/suckless/st/themes/switch-theme.sh"
+
+# Weathr
+alias weathr='weathr --hide-location'
+
+# Ligolo Proxy
+alias ligolo-proxy='sudo ~/Tools/pivoting/ligolo/proxy/proxy -selfcert'
+
+# smuggler.py
+alias smuggler='python3 /home/ayush/Tools/offensive-web/smuggler/smuggler.py'
+
+# burpsuitepro
+
+alias burpsuiteprocrack='nohup /opt/Burpsuite-Professional/Burpsuite-Professional/burpsuitepro > /dev/null 2>&1 &'

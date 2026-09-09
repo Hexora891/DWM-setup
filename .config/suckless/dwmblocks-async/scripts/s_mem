@@ -1,0 +1,36 @@
+#!/bin/sh
+
+mem_mb=$(free -m | awk '/Mem:/ {print $3}')
+
+if [ "$mem_mb" -ge 1024 ]; then
+    mem=$(awk "BEGIN {printf \"%.1fGB\", $mem_mb/1024}")
+else
+    mem="${mem_mb}MB"
+fi
+
+case "$BLOCK_BUTTON" in
+    1)
+        (
+            TOPMEM=$(ps -eo comm,rss --sort=-rss | head -n 6 | sed '1d' | \
+            awk '
+            {
+                mem=$2/1024
+
+                if (mem >= 1024)
+                    memfmt=sprintf("%.1f GB", mem/1024)
+                else
+                    memfmt=sprintf("%.0f MB", mem)
+
+                printf "%-14s %8s\n", $1, memfmt
+            }')
+
+            notify-send \
+                "󰍛 RAM Usage" \
+                "$TOPMEM" \
+                -u low \
+                -t 4000
+        ) &
+        ;;
+esac
+
+printf "󰍛 %6s" "$mem"

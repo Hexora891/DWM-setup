@@ -1,0 +1,31 @@
+#!/bin/sh
+
+STATUS=$(protonvpn-cli status 2>/dev/null)
+
+if echo "$STATUS" | grep -q "Connected"; then
+
+    IP=$(echo "$STATUS" | grep "IP" | awk '{print $2}')
+
+    case "$BLOCK_BUTTON" in
+        1)
+            notify-send \
+                "󰖂 VPN Connected" \
+                "$STATUS"
+            ;;
+        3)
+            vpn_disconnect
+            ;;
+    esac
+
+    printf "󰖂 %s" "$IP"
+
+else
+
+    case "$BLOCK_BUTTON" in
+        1)
+            vpn_connect
+            ;;
+    esac
+
+    printf "󰦝 Off"
+fi

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+pamixer --default-source --get-mute 2>/dev/null | grep -q true \
+  && echo " muted" \
+  || echo " on"

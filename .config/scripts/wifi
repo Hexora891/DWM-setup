@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# ---------- CONFIG ----------
+APP="wifi"
+ICON_ON="network-wireless"
+ICON_OFF="network-wireless-offline"
+ICON_OK="network-transmit-receive"
+ICON_ERR="dialog-error"
+
+# Send notification (replace previous)
+notify() {
+    notify-send -a "$APP" -r 9991 -u "$1" -i "$2" "Wi-Fi" "$3"
+}
+
+# ---------- TOGGLE ----------
+toggle_wifi() {
+    state=$(nmcli radio wifi)
+    if [ "$state" = "enabled" ]; then
+        nmcli radio wifi off
+        notify normal "$ICON_OFF" "Wi-Fi turned OFF"
+    else
+        nmcli radio wifi on
+        notify normal "$ICON_ON" "Wi-Fi turned ON"
+    fi
+}
+
+# ---------- LIST ----------
+get_wifi() {
+    nmcli -t -f IN-USE,SSID,SIGNAL dev wifi list --rescan yes | awk -F: '
+    BEGIN {
+        cmd="nmcli radio wifi"
+        cmd | getline state
+        close(cmd)
+
+        if (state=="enabled")
+            print "󰖩  Toggle Wi-Fi (ON)"
+        else
+            print "󰖪  Toggle Wi-Fi (OFF)"
+    }
+    {
+        if ($2 != "") {
+            signal=int($3/20)
+            bars=""
+            for(i=0;i<signal;i++) bars=bars "▂"
+            for(i=signal;i<5;i++) bars=bars " "
+
+            if ($1=="*")
+                printf " %s [%s]\n",$2,bars
+            else
+                printf "   %s [%s]\n",$2,bars
+        }
+    }'
+}
+
+# ---------- MENU ----------
+chosen=$(get_wifi | rofi -dmenu -i -p "Wi-Fi")
+[ -z "$chosen" ] && exit
+
+# ---------- HANDLE TOGGLE ----------
+if echo "$chosen" | grep -q "Toggle"; then
+    toggle_wifi
+    exit
+fi
+
+# ---------- EXTRACT SSID ----------
+ssid=$(echo "$chosen" | sed 's/^ //' | sed 's/^   //' | cut -d'[' -f1 | xargs)
+
+# ---------- CONNECT ----------
+if nmcli dev wifi connect "$ssid" 2>/dev/null; then
+    notify low "$ICON_OK" "Connected to $ssid"
+else
+    password=$(rofi -dmenu -password -p "Password for $ssid")
+    [ -z "$password" ] && exit
+
+    if nmcli dev wifi connect "$ssid" password "$password"; then
+        notify low "$ICON_OK" "Connected to $ssid"
+    else
+        notify critical "$ICON_ERR" "Failed to connect to $ssid"
+    fi
+fi

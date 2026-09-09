@@ -1,0 +1,6 @@
+# WiFi SSID or connection status
+iwgetid -r 2>/dev/null || echo "Disconnected"
+
+# Network speed/bandwidth
+# Or simple IP address
+hostname -I | awk '{print $1}'

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Check if powerprofilesctl exists
+if ! command -v powerprofilesctl >/dev/null 2>&1; then
+    notify-send -u critical "Power Profiles" "powerprofilesctl not installed"
+    exit 1
+fi
+
+# Get available profiles
+PROFILES=$(powerprofilesctl list | awk '/:$/ {gsub(/[:*]/,""); print $1}')
+
+# Show rofi menu
+CHOICE=$(echo "$PROFILES" | rofi -dmenu -p "Power Profile")
+
+[[ -z "$CHOICE" ]] && exit 0
+
+# Set profile
+if powerprofilesctl set "$CHOICE"; then
+    CURRENT_PROFILE="$(powerprofilesctl get)"
+    notify-send -u normal -i preferences-system-power \
+    "Profile Updated" "Current: $CURRENT_PROFILE"
+else
+    notify-send -u critical -i dialog-error \
+    "Power Profile" "Failed to set profile"
+fi

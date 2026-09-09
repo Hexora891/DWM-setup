@@ -1,0 +1,8 @@
+#!/bin/sh
+
+vol=$(pamixer --get-volume 2>/dev/null)
+mute=$(pamixer --get-mute 2>/dev/null)
+
+[ "$mute" = "true" ] && icon="󰝟" || icon="󰕾"
+
+printf "%s %s%%" "$icon" "$vol"

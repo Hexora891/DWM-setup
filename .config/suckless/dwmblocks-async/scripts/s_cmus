@@ -1,0 +1,11 @@
+#!/bin/sh
+
+cmus-remote -Q >/dev/null 2>&1 || exit
+
+status=$(cmus-remote -Q | awk '/status/ {print $2}')
+[ "$status" = "playing" ] || exit
+
+artist=$(cmus-remote -Q | awk -F ' ' '/artist/ {$1=""; print substr($0,2)}')
+title=$(cmus-remote -Q | awk -F ' ' '/title/ {$1=""; print substr($0,2)}')
+
+printf " %s - %s" "$artist" "$title"

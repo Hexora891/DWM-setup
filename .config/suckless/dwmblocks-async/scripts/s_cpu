@@ -1,0 +1,63 @@
+#!/bin/sh
+
+CACHE="/tmp/dwm_cpu_${USER}"
+
+# Get number of CPU cores
+CORES=$(nproc)
+
+case "$BLOCK_BUTTON" in
+    1)
+        (
+            TOPCPU=$(ps -eo comm=,%cpu= --sort=-%cpu |
+                head -n 5 |
+                awk -v cores="$CORES" '{
+                    # Divide by number of cores and cap at 100%
+                    cpu = ($2 / cores > 100) ? 100 : $2 / cores
+                    printf "%-20s %3.0f%%\n", $1, cpu
+                }')
+            
+            notify-send \
+                "󰍛 CPU Usage" \
+                "$TOPCPU" \
+                -u low \
+                -t 4000
+        ) &
+        ;;
+esac
+
+# Read current CPU stats
+set -- $(awk '/^cpu / {
+    print $2,$3,$4,$5,$6,$7,$8,$9
+}' /proc/stat)
+
+USER_CPU=$1
+NICE_CPU=$2
+SYSTEM_CPU=$3
+IDLE_CPU=$4
+IOWAIT_CPU=$5
+IRQ_CPU=$6
+SOFTIRQ_CPU=$7
+STEAL_CPU=$8
+
+TOTAL=$((USER_CPU + NICE_CPU + SYSTEM_CPU + IDLE_CPU + IOWAIT_CPU + IRQ_CPU + SOFTIRQ_CPU + STEAL_CPU))
+IDLE=$((IDLE_CPU + IOWAIT_CPU))
+
+if [ -r "$CACHE" ]; then
+    read -r PREV_TOTAL PREV_IDLE < "$CACHE"
+    
+    TOTAL_DIFF=$((TOTAL - PREV_TOTAL))
+    IDLE_DIFF=$((IDLE - PREV_IDLE))
+    
+    if [ "$TOTAL_DIFF" -gt 0 ]; then
+        USAGE=$(awk -v total="$TOTAL_DIFF" -v idle="$IDLE_DIFF" \
+            'BEGIN { printf "%.0f", 100 * (total - idle) / total }')
+    else
+        USAGE="0"
+    fi
+else
+    USAGE="0"
+fi
+
+printf "%3s%%" "$USAGE"
+
+printf '%s %s\n' "$TOTAL" "$IDLE" > "$CACHE"

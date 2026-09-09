@@ -1,0 +1,187 @@
+# =========================
+# Reverse Shell Listener
+# =========================
+
+revshell() {
+    read "?Port to listen: " PORT
+
+    [[ -z "$PORT" ]] && return 1
+
+    if command -v rlwrap >/dev/null 2>&1; then
+        rlwrap -cAr nc -lvnp "$PORT"
+    else
+        nc -lvnp "$PORT"
+    fi
+}
+
+# =========================
+# Fast Directory Jump
+# =========================
+
+cdf() {
+    local base="${1:-$HOME}"
+
+    [[ ! -d "$base" ]] && {
+        echo "Directory not found"
+        return 1
+    }
+
+    local dir
+
+    dir=$(
+        fd . "$base" \
+            --type d \
+            --hidden \
+            --follow \
+            --exclude .git \
+            --exclude .cache \
+            --exclude .local \
+            --exclude .cargo \
+            --exclude .rustup \
+            --exclude .npm \
+            --exclude node_modules \
+            --exclude target \
+            --exclude dist \
+            --exclude snap \
+            --exclude .steam \
+            --exclude .var \
+            --exclude .BurpSuite \
+            --exclude .gnupg \
+            2>/dev/null | \
+        fzf \
+            --height 80% \
+            --layout=reverse \
+            --preview 'eza --icons --color=always -1 {} | head -200'
+    )
+
+    [[ -n "$dir" ]] && cd "$dir"
+}
+
+# =========================
+# Fuzzy Kill
+# =========================
+
+fkill() {
+    local pid
+
+    pid=$(
+        ps -u "$USER" -o pid,cmd --no-headers | \
+        fzf -m | \
+        awk '{print $1}'
+    )
+
+    [[ -n "$pid" ]] && kill "$pid"
+}
+
+# =========================
+# Better History Search
+# =========================
+
+fh() {
+    local cmd
+
+    cmd=$(
+        fc -rl 1 | \
+        fzf --height 80% --layout=reverse
+    ) || return
+
+    print -z "${cmd#* }"
+}
+
+# =========================
+# Smart File Opener
+# =========================
+
+ff() {
+    local file
+
+    file=$(
+        fd . \
+            --type f \
+            --hidden \
+            --exclude .git \
+            2>/dev/null | \
+        fzf \
+            --height 80% \
+            --layout=reverse \
+            --preview '
+                if file --mime "{}" | grep -q text; then
+                    bat --style=numbers \
+                        --color=always \
+                        --line-range=:200 "{}"
+                else
+                    file "{}"
+                fi
+            '
+    )
+
+    [[ -n "$file" ]] && "${EDITOR:-nvim}" "$file"
+}
+
+# =========================
+# Better Ripgrep Search
+# =========================
+
+frg() {
+    local result
+    local file
+    local line
+
+    result=$(
+        rg \
+            --line-number \
+            --no-heading \
+            --smart-case \
+            --color=always . | \
+        fzf \
+            --ansi \
+            --delimiter ':' \
+            --preview '
+                bat --style=numbers \
+                    --color=always \
+                    --highlight-line {2} \
+                    {1}
+            '
+    ) || return
+
+    file=$(echo "$result" | cut -d: -f1)
+    line=$(echo "$result" | cut -d: -f2)
+
+    "${EDITOR:-nvim}" +"$line" "$file"
+}
+
+# =========================
+# NetExec RID Bruteforce
+# =========================
+
+nxc_rid_brute() {
+
+    if [[ $# -lt 4 ]]; then
+        echo "Usage: nxc_rid_brute <target> <username> <password> <maxrid>"
+        return 1
+    fi
+
+    local target="$1"
+    local username="$2"
+    local password="$3"
+    local maxrid="$4"
+
+    nxc smb "$target" \
+        -u "$username" \
+        -p "$password" \
+        --rid-brute "$maxrid" | \
+    grep '(SidTypeUser)' | \
+    awk '{print $6}' | \
+    cut -d'\' -f2 | \
+    sort -u | \
+    tee \
+        >(grep '\$$' > machines.lst) \
+        >(grep -v '\$$' > users.lst) \
+        > accounts.lst
+
+    echo
+    echo "Saved:"
+    echo "  users.lst"
+    echo "  machines.lst"
+    echo "  accounts.lst"
+}
